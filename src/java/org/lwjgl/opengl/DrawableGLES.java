@@ -93,7 +93,7 @@ abstract class DrawableGLES implements DrawableLWJGL {
 			int[] attribs = {
 				EGL_LEVEL, 0,
 				EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-				EGL_NATIVE_RENDERABLE, EGL_FALSE,
+				//EGL_NATIVE_RENDERABLE, EGL_FALSE,
 			};
 
 			final EGLConfig[] configs = eglDisplay.chooseConfig(pf.getAttribBuffer(eglDisplay, eglSurfaceType, attribs), null, BufferUtils.createIntBuffer(1));

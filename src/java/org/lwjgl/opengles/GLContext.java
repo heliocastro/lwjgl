@@ -268,6 +268,9 @@ public final class GLContext {
 				 * a capabilities object has been set.
 				 */
 				new ContextCapabilities();
+				
+				org.lwjgl.opengles.StateTracker.getTracker().init();
+				
 				capability_cache.put(context, getCapabilities());
 			} else
 				setCapabilities(capabilities);

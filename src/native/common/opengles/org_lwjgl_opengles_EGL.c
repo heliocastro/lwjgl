@@ -30,17 +30,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+//ChrisH : Patched for Lwjgl OpenGLES support (for Raspberry Pi)
+
 #include <jni.h>
 #include "common_tools.h"
 #include "org_lwjgl_opengles_EGL.h"
 #include "extgl_egl.h"
+
+//ChrisH : Lwjgl OpenGLES support (for Raspberry Pi):
+#include "interface/vmcs_host/vc_dispmanx_types.h"
+#include "interface/vctypes/vc_image_types.h"
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengles_EGL_eglGetError(JNIEnv *env, jclass clazz) {
     return eglGetError();
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengles_EGL_neglGetDisplay(JNIEnv *env, jclass clazz, jlong display_id) {
-    return (intptr_t)eglGetDisplay((EGLNativeDisplayType)(intptr_t)display_id);
+    //ChrisH : Lwjgl OpenGLES support (for Raspberry Pi):
+    //@@spsn
+    //return (intptr_t)eglGetDisplay((EGLNativeDisplayType)(intptr_t)display_id);
+    return (intptr_t)eglGetDisplay((EGLNativeDisplayType)(intptr_t)0);
 }
 
 JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengles_EGL_neglInitialize(JNIEnv *env, jclass clazz, jlong dpy_ptr, jlong version) {
@@ -95,7 +104,56 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengles_EGL_neglCreateWindowSurface(JNIE
     EGLConfig config = (EGLConfig)(intptr_t)config_ptr;
     const EGLint *attrib_list_address = (EGLint *)(intptr_t)attrib_list;
 
-    return (intptr_t)eglCreateWindowSurface(dpy, config, (EGLNativeWindowType)(intptr_t)win, attrib_list_address);
+    //ChrisH : Lwjgl OpenGLES support (for Raspberry Pi):
+    //@@spsn
+    int32_t success = 0;
+    EGLBoolean result;
+    EGLint num_config;
+    EGLint screen_width;
+    EGLint screen_height;
+
+    static EGL_DISPMANX_WINDOW_T nativewindow;
+
+    DISPMANX_ELEMENT_HANDLE_T dispman_element;
+    DISPMANX_DISPLAY_HANDLE_T dispman_display;
+    DISPMANX_UPDATE_HANDLE_T dispman_update;
+    VC_RECT_T dst_rect;
+    VC_RECT_T src_rect;
+
+    bcm_host_init();
+
+    // create an EGL window surface
+    success = graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height);
+
+    dst_rect.x = 0;
+    dst_rect.y = 0;
+    dst_rect.width = screen_width;
+    dst_rect.height = screen_height;
+      
+    src_rect.x = 0;
+    src_rect.y = 0;
+    src_rect.width = screen_width << 16;
+    src_rect.height = screen_height << 16;
+
+    VC_DISPMANX_ALPHA_T alpha;
+    alpha.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
+    alpha.opacity = 255;
+    alpha.mask = 0;
+
+    dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
+    dispman_update = vc_dispmanx_update_start( 0 );
+         
+    dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
+      0/*layer*/, &dst_rect, 0/*src*/,
+      &src_rect, DISPMANX_PROTECTION_NONE, &alpha/*alpha*/, 0/*clamp*/, 0/*transform*/);
+      
+    nativewindow.element = dispman_element;
+    nativewindow.width = screen_width;
+    nativewindow.height = screen_height;
+    vc_dispmanx_update_submit_sync( dispman_update );
+     
+    //return (intptr_t)eglCreateWindowSurface(dpy, config, (EGLNativeWindowType)(intptr_t)win, attrib_list_address);
+    return (intptr_t)eglCreateWindowSurface(dpy, config, (EGLNativeWindowType)(intptr_t)&nativewindow, attrib_list_address);
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengles_EGL_neglCreatePbufferSurface(JNIEnv *env, jclass clazz, jlong dpy_ptr, jlong config_ptr, jlong attrib_list) {
