@@ -11,8 +11,10 @@ pushd src/native/common
 	[ ! -d VG ] && ln -s /opt/vc/include/VG .
 popd
 
+rm -rf eclipse_update 
+
 # Compile
 echo "To compile:"
 echo "ant"
-echo "ant compile_native_es
+echo "ant compile_native_es"
 

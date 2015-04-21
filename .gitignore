@@ -19,4 +19,8 @@
 /src/native/linux/org_lwjgl_opengl_Display.c
 
 nbproject/project.xml
-/nbproject/private/
+/nbproject/private/src/native/common/IL
+src/native/common/VG
+src/native/common/interface
+src/native/common/vcinclude
+src/native/common/IL

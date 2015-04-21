@@ -108,7 +108,7 @@
 		<antcall target="-distribute" />
 	</target>
 
-	<target name="all" description="Creates the Java archives and the natives for the current platform" depends="jars, compile_native"/>
+	<target name="all" description="Creates the Java archives and the natives for the current platform" depends="jars, jars_es, compile_native, compile_native_es"/>
 
 	<!-- Create ONLY the jar archives -->
 	<target name="jars" description="Creates the Java archives ONLY and places them in libs/" depends="-initialize, generate-all, compile, -createjars">
